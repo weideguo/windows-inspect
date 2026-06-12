@@ -12,8 +12,12 @@
 
 :: 选择其一启动http服务
 :: python
+:: 安装依赖
+:: pip install -r requirements.txt
 python windows_execution.py
 
 :: golang
+:: 编译go代码
+:: go build -o windows_execution.exe
 windows_execution.exe
 ```
