@@ -21,3 +21,15 @@ python windows_execution.py
 :: go build -o windows_execution.exe
 windows_execution.exe
 ```
+
+## web页面
+```shell
+# 安装依赖
+npm install
+
+# 启动项目
+npm run dev
+
+# 编译项目
+npm run build
+```
