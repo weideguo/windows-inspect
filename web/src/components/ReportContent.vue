@@ -232,7 +232,7 @@ const hwInfoSteps = [
   },
   {
     label: '逻辑磁盘',
-    ps: String.raw`Get-CimInstance Win32_LogicalDisk -Filter 'DriveType=3'|ForEach-Object{$t=[math]::Round($_.Size/1GB,1);$f=[math]::Round($_.FreeSpace/1GB,1);$u=[math]::Round($t-$f,1);$p=if($t-gt 0){[math]::Round($u/$t*100,1)}else{0};Write-Output "$($_.DeviceID)|$($_.VolumeName)|$t|$f|$u|$p"`
+    ps: String.raw`Get-CimInstance Win32_LogicalDisk -Filter 'DriveType=3'|ForEach-Object{$t=[math]::Round($_.Size/1GB,1);$f=[math]::Round($_.FreeSpace/1GB,1);$u=[math]::Round($t-$f,1);$p=if($t-gt 0){[math]::Round($u/$t*100,1)}else{0};Write-Output "$($_.DeviceID)|$($_.VolumeName)|$t|$f|$u|$p"}`
   },
   {
     label: '物理磁盘健康',

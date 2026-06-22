@@ -31,11 +31,9 @@ function _readBaseUrl () {
   if (typeof localStorage === 'undefined') {
     throw new Error('execCommand: localStorage is not available in this environment')
   }
-  const baseUrl = (localStorage.getItem(STORAGE_KEY) || '').trim()
+  let baseUrl = (localStorage.getItem(STORAGE_KEY) || '').trim()
   if (!baseUrl) {
-    throw new Error(
-      `execCommand: localStorage['${STORAGE_KEY}'] is empty; please set a baseUrl first`
-    )
+    baseUrl = 'http://localhost:5000'
   }
   return baseUrl
 }
@@ -87,7 +85,7 @@ function _buildBody (opts) {
  * @returns {Promise<{ mode: 'ps'|'bat', returncode: number, stderr: string, stdout: string }>}
  */
 export async function execCommand (opts) {
-  const baseUrl = _readBaseUrl()
+  const baseUrl = opts.baseUrl ? String(opts.baseUrl).trim() : _readBaseUrl()
   const body = _buildBody(opts)
 
   // 规范化 baseUrl 末尾斜杠，避免出现 '//exec' 双斜杠。

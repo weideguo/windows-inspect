@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { sections } from '../data/reportData.js'
+import { execCommand } from '../data/exec.js'
 
 const props = defineProps({
   activeId: String,
@@ -14,6 +15,8 @@ const STORAGE_KEY = 'app:baseUrl'
 const settingsOpen = ref(false)
 const baseUrl = ref('')
 const saveTip = ref('')
+const saveTipType = ref('')
+const confirming = ref(false)
 
 const handleClick = (id) => {
   emit('navigate', id)
@@ -34,18 +37,38 @@ const onOverlayClick = (e) => {
   if (e.target === e.currentTarget) closeSettings()
 }
 
-const confirmSettings = () => {
-  if (typeof localStorage !== 'undefined') {
+const confirmSettings = async () => {
+  confirming.value = true
+  try {
     const value = (baseUrl.value || '').trim()
-    if (value) {
-      localStorage.setItem(STORAGE_KEY, value)
-      saveTip.value = '已保存：' + value
-    } else {
-      localStorage.removeItem(STORAGE_KEY)
+    if (!value) {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(STORAGE_KEY)
+      }
       saveTip.value = '已清空 baseUrl'
+      saveTipType.value = 'success'
+      setTimeout(() => closeSettings(), 400)
+      return
     }
+
+    const result = await execCommand({ ps: 'Write-Output 1', baseUrl: value })
+    if (result.returncode === 0) {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY, value)
+      }
+      saveTip.value = '已保存：' + value
+      saveTipType.value = 'success'
+      setTimeout(() => closeSettings(), 400)
+    } else {
+      saveTip.value = '连接失败：命令执行返回非零状态码'
+      saveTipType.value = 'error'
+    }
+  } catch (err) {
+    saveTip.value = '连接失败：' + (err.message || String(err))
+    saveTipType.value = 'error'
+  } finally {
+    confirming.value = false
   }
-  setTimeout(() => closeSettings(), 400)
 }
 </script>
 
@@ -104,12 +127,21 @@ const confirmSettings = () => {
               />
             </div>
 
-            <div v-if="saveTip" class="sb-modal-note">{{ saveTip }}</div>
+            <div v-if="saveTip" class="sb-modal-note" :class="saveTipType">{{ saveTip }}</div>
+
+            <div class="sb-modal-group">
+              <label class="sb-input-label">下载http服务端</label>
+              <div class="sb-download-btns">
+                <a href="https://github.com/weideguo/windows-inspect/raw/main/windows_execution_py/windows_execution.py" target="_blank" class="sb-btn sb-btn-ghost sb-btn-sm">python版本</a>
+                <a href="https://github.com/weideguo/windows-inspect/releases/latest/download/windows_execution.exe" target="_blank" class="sb-btn sb-btn-ghost sb-btn-sm">exe版本</a>
+                <!-- <a href="https://github.com/weideguo/windows-inspect/releases/latest" target="_blank" class="sb-btn sb-btn-ghost sb-btn-sm">exe版本</a> -->
+              </div>
+            </div>
           </div>
 
           <div class="sb-modal-footer">
             <button type="button" class="sb-btn sb-btn-ghost" @click="closeSettings">取消</button>
-            <button type="button" class="sb-btn sb-btn-primary" @click="confirmSettings">确定</button>
+            <button type="button" class="sb-btn sb-btn-primary" @click="confirmSettings" :disabled="confirming">{{ confirming ? '确认中' : '确定' }}</button>
           </div>
         </div>
       </div>
@@ -417,6 +449,24 @@ const confirmSettings = () => {
   border-radius: 3px;
   font-size: 12px;
 }
+.sb-modal-note.success {
+  background: #e8f8f0;
+  color: #1e8e56;
+}
+.sb-modal-note.error {
+  background: #fbeaea;
+  color: #d33a3a;
+}
+
+.sb-download-btns {
+  display: flex;
+  gap: 10px;
+}
+.sb-btn-sm {
+  min-width: auto;
+  padding: 5px 12px;
+  font-size: 12px;
+}
 
 .sb-modal-footer {
   padding: 12px 20px 16px;
@@ -453,6 +503,12 @@ const confirmSettings = () => {
 .sb-btn-primary:hover {
   background: #3c8aef;
   border-color: #3c8aef;
+}
+.sb-btn-primary:disabled {
+  background: #8c95a0;
+  border-color: #8c95a0;
+  cursor: not-allowed;
+  opacity: 0.8;
 }
 
 /* 过渡动画 */
