@@ -5,9 +5,7 @@ permissions:
   packages: write
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
 
 jobs:
   build:
